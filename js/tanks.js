@@ -1,5 +1,5 @@
 
-EnemyTank = function (index, game, player, bullets) {
+EnemyTank = function (index, game, player) {
 
     var x = game.world.randomX;
     var y = game.world.randomY;
@@ -87,7 +87,7 @@ function preload () {
     game.load.image('bullet', 'assets/bullet.png');
     game.load.image('earth', 'assets/scorched_earth.png');
     game.load.spritesheet('kaboom', 'assets/explosion.png', 64, 64, 23);
-    
+
 }
 
 var land;
@@ -140,7 +140,7 @@ function create () {
     enemyBullets.enableBody = true;
     enemyBullets.physicsBodyType = Phaser.Physics.ARCADE;
     enemyBullets.createMultiple(100, 'bullet');
-    
+
     enemyBullets.setAll('anchor.x', 0.5);
     enemyBullets.setAll('anchor.y', 0.5);
     enemyBullets.setAll('outOfBoundsKill', true);
@@ -311,4 +311,3 @@ function render () {
     game.debug.text('Enemies: ' + enemiesAlive + ' / ' + enemiesTotal, 32, 32);
 
 }
-
