@@ -56,13 +56,14 @@ var eurecaClientSetup = function() {
 
 		console.log('SPAWN');
 		var tnk = new Tank(i, game, tank);
-        //game.physics.enable(tnk, Phaser.Physics.ARCADE);
+        game.physics.enable(tnk, Phaser.Physics.ARCADE);
+        tnk.tank.body.immovable = true;
+        tnk.tank.body.collideWorldBounds = true;
 		tanksList[i] = tnk;
 	}
 
 	eurecaClient.exports.updateState = function(id, state)
 	{
-        if (id == this.myId) return;
 		if (tanksList[id])  {
 			tanksList[id].cursor = state;
 			tanksList[id].tank.x = state.x;
@@ -139,15 +140,15 @@ Tank.prototype.update = function() {
 
 	//cursor value is now updated by eurecaClient.exports.updateState method
 
-    if (this.cursor.left)
+    if (this.input.left)
     {
         this.tank.angle -= 3;
     }
-    else if (this.cursor.right)
+    else if (this.input.right)
     {
         this.tank.angle += 3;
     }
-    if (this.cursor.up)
+    if (this.input.up)
     {
         //  The speed we'll travel at
         this.currentSpeed = 300;
