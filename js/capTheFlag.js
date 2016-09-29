@@ -56,11 +56,13 @@ var eurecaClientSetup = function() {
 
 		console.log('SPAWN');
 		var tnk = new Tank(i, game, tank);
+        //game.physics.enable(tnk, Phaser.Physics.ARCADE);
 		tanksList[i] = tnk;
 	}
 
 	eurecaClient.exports.updateState = function(id, state)
 	{
+        if (id == this.myId) return;
 		if (tanksList[id])  {
 			tanksList[id].cursor = state;
 			tanksList[id].tank.x = state.x;
@@ -77,14 +79,12 @@ Tank = function (index, game, player) {
 		left:false,
 		right:false,
 		up:false,
-		fire:false
 	}
 
 	this.input = {
 		left:false,
 		right:false,
-		up:false,
-		fire:false
+		up:false
 	}
 
     var x = 0;
@@ -96,15 +96,15 @@ Tank = function (index, game, player) {
 	this.currentSpeed =0;
     this.alive = true;
 
-    this.shadow = game.add.sprite(x, y, 'enemy', 'shadow');
-    this.tank = game.add.sprite(x, y, 'enemy', 'tank1');
+    this.shadow = game.add.sprite(x, y, 'shadow');
+    this.tank = game.add.sprite(x, y, 'enemy');
 
     this.shadow.anchor.set(0.5);
     this.tank.anchor.set(0.5);
 
     this.tank.id = index;
     game.physics.enable(this.tank, Phaser.Physics.ARCADE);
-    this.tank.body.immovable = false;
+    this.tank.body.immovable = true;
     this.tank.body.collideWorldBounds = true;
     this.tank.body.bounce.setTo(0, 0);
 
@@ -141,11 +141,11 @@ Tank.prototype.update = function() {
 
     if (this.cursor.left)
     {
-        this.tank.angle -= 1;
+        this.tank.angle -= 3;
     }
     else if (this.cursor.right)
     {
-        this.tank.angle += 1;
+        this.tank.angle += 3;
     }
     if (this.cursor.up)
     {
@@ -182,10 +182,13 @@ Tank.prototype.kill = function() {
 var game = new Phaser.Game(800, 600, Phaser.AUTO, 'phaser-example', { preload: preload, create: eurecaClientSetup, update: update, render: render });
 
 function preload () {
-    game.load.atlas('tank', 'assets/tanks.png', 'assets/tanks.json');
-    game.load.atlas('enemy', 'assets/enemy-tanks.png', 'assets/tanks.json');
+    //game.load.atlas('tank', 'assets/tanks.png', 'assets/tanks.json');
+    //game.load.atlas('enemy', 'assets/enemy-tanks.png', 'assets/tanks.json');
+    game.load.image('enemy', 'assets/bluecar.png');
+    game.load.image('shadow', 'assets/shadow.png')
     game.load.image('logo', 'assets/logo.png');
-    game.load.image('earth', 'assets/scorched_earth.png');
+    game.load.image('earth', 'assets/light_grass.png');
+    game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 }
 
 function create () {
@@ -197,6 +200,8 @@ function create () {
     //  Our tiled scrolling background
     land = game.add.tileSprite(0, 0, 800, 600, 'earth');
     land.fixedToCamera = true;
+
+    game.physics.startSystem(Phaser.Physics.ARCADE);
 
     tanksList = {};
 
@@ -241,23 +246,33 @@ function update () {
     land.tilePosition.x = -game.camera.x;
     land.tilePosition.y = -game.camera.y;
 
-    for (var i in tanksList)
-    {
-		if (!tanksList[i]) continue;
-		var curTank = tanksList[i].tank;
-		for (var j in tanksList)
-		{
-			if (!tanksList[j]) continue;
-			if (j!=i)
-			{
-				var targetTank = tanksList[j].tank;
-			}
-			if (tanksList[j].alive)
-			{
-				tanksList[j].update();
-			}
-		}
+    game.physics.arcade.collide(player, tanksList);
+
+    for (var i in tanksList){
+        var curTank = tanksList[i];
+        if(curTank.alive){
+            game.physics.arcade.collide(player, curTank);
+            curTank.update();
+        }
     }
+
+    // for (var i in tanksList)
+    // {
+	// 	if (!tanksList[i]) continue;
+	// 	var curTank = tanksList[i].tank;
+	// 	for (var j in tanksList)
+	// 	{
+	// 		if (!tanksList[j]) continue;
+	// 		if (j!=i)
+	// 		{
+	// 			var targetTank = tanksList[j].tank;
+	// 		}
+	// 		if (tanksList[j].alive)
+	// 		{
+	// 			tanksList[j].update();
+	// 		}
+	// 	}
+    // }
 }
 
 function render () {}
