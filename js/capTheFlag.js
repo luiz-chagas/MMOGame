@@ -1,4 +1,4 @@
-var myId=0;
+var myId = 0;
 
 var land;
 var shadow;
@@ -40,23 +40,20 @@ var eurecaClientSetup = function() {
 
 	eurecaClient.exports.spawnEnemy = function(i, x, y)
 	{
-
 		if (i == myId) return; //this is me
-
 		console.log('Spawn %s %s %s', i, x, y);
 		var tnk = new Tank(i, game, tank);
         tnk.tank.x = x;
         tnk.tank.y = y;
-        game.physics.enable(tnk.tank);
-        tnk.tank.body.immovable = true;
-        tnk.tank.body.collideWorldBounds = true;
+        //game.physics.arcade.enable(tnk.tank);
+        //tnk.tank.body.immovable = true;
+        //tnk.tank.body.collideWorldBounds = true;
 		tanksList[i] = tnk;
 	}
 
 	eurecaClient.exports.updateState = function(id, state)
 	{
         if(id == myId){
-            console.log("I wont update my x and y.");
             tanksList[id].cursor = state;
             tanksList[id].tank.angle = state.angle;
 			tanksList[id].update();
@@ -102,7 +99,7 @@ Tank = function (index, game, player) {
     this.tank.anchor.set(0.5);
 
     this.tank.id = index;
-    game.physics.enable(this.tank);
+    game.physics.arcade.enable(this.tank);
     this.tank.body.immovable = true;
     this.tank.body.collideWorldBounds = true;
 
@@ -157,6 +154,7 @@ Tank.prototype.update = function() {
             this.currentSpeed -= 4;
         }
     }
+
     if (this.currentSpeed > 0)
     {
         game.physics.arcade.velocityFromRotation(this.tank.rotation, this.currentSpeed, this.tank.body.velocity);
@@ -175,7 +173,7 @@ Tank.prototype.kill = function() {
 	this.alive = false;
 	this.tank.kill();
 	this.shadow.kill();
-}
+};
 
 var game = new Phaser.Game(800, 600, Phaser.AUTO, 'phaser-example', { preload: preload, create: eurecaClientSetup, update: update, render: render });
 
@@ -208,10 +206,10 @@ function create () {
 	tank.y = 0;
 	shadow = player.shadow;
 
-    game.physics.enable(player.tank);
-    player.tank.body.immovable = true;
-    player.tank.body.collideWorldBounds = true;
-    player.tank.body.bounce.setTo(0, 0);
+    //game.physics.arcade.enable(player.tank);
+    //player.tank.body.immovable = true;
+    //player.tank.body.collideWorldBounds = true;
+    //player.tank.body.bounce.setTo(0, 0);
 
     //game.pad = game.plugins.add(Phaser.VirtualJoystick);
     //game.stick = game.pad.addStick(0, 0, 200, 'generic');
@@ -256,7 +254,11 @@ function update () {
         if(curTank.alive){
             game.physics.arcade.collide(player.tank, curTank.tank);
             if(game.physics.arcade.overlap(player.tank, curTank.tank)){
-                console.log("Colision!");
+                player.tank.body.moves = false;
+                curTank.tank.body.moves = false;
+            }else{
+                player.tank.body.moves = true;
+                curTank.tank.body.moves = true;
             }
             curTank.update();
         }
