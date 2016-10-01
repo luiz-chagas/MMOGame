@@ -10,18 +10,22 @@ var EurecaServer = require('eureca.io').EurecaServer;
 
 var eurecaServer = new EurecaServer({allow:['setId', 'spawnEnemy', 'kill', 'updateState']});
 var clients = {};
+var nPlayers = 0;
 
 eurecaServer.attach(server);
 
 eurecaServer.onConnect(function (conn){
-    console.log("New client!\n");
+    nPlayers++;
+    var team = nPlayers%2;
+    console.log("New player! Team: %d", team);
     var remote = eurecaServer.getClient(conn.id);
-    clients[conn.id] = {id:conn.id, remote: remote};
-    remote.setId(conn.id);
+    clients[conn.id] = {id:conn.id, remote: remote, team: team};
+    remote.setId(conn.id, team);
 });
 
 eurecaServer.onDisconnect(function (conn){
     console.log("Client disconnected.\n");
+    nPlayers--;
     var removeId = clients[conn.id].id;
     delete clients[conn.id];
     for(var c in clients){
@@ -40,7 +44,7 @@ eurecaServer.exports.handshake = function()
 		{
             var x = clients[cc].laststate ? clients[cc].laststate.x:  0;
 			var y = clients[cc].laststate ? clients[cc].laststate.y:  0;
-			remote.spawnEnemy(clients[cc].id, x, y);
+			remote.spawnEnemy(clients[cc].id, x, y, clients[cc].team);
 		}
 	}
 }

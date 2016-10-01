@@ -1,7 +1,11 @@
 var myId = 0;
+var myTeam;
 
 var land;
+var flagzoneTop;
+var flagzoneBottom;
 var shadow;
+var team;
 var tank;
 var player;
 var tanksList;
@@ -21,10 +25,11 @@ var eurecaClientSetup = function() {
 
 	//methods defined under "exports" namespace become available in the server side
 
-	eurecaClient.exports.setId = function(id)
+	eurecaClient.exports.setId = function(id, team)
 	{
 		//create() is moved here to make sure nothing is created before uniq id assignation
 		myId = id;
+        myTeam = team;
 		create();
 		eurecaServer.handshake();
 		ready = true;
@@ -38,16 +43,13 @@ var eurecaClientSetup = function() {
 		}
 	}
 
-	eurecaClient.exports.spawnEnemy = function(i, x, y)
+	eurecaClient.exports.spawnEnemy = function(i, x, y, team)
 	{
 		if (i == myId) return; //this is me
 		console.log('Spawn %s %s %s', i, x, y);
-		var tnk = new Tank(i, game, tank);
+		var tnk = new Tank(i, game, tank, team);
         tnk.tank.x = x;
         tnk.tank.y = y;
-        //game.physics.arcade.enable(tnk.tank);
-        //tnk.tank.body.immovable = true;
-        //tnk.tank.body.collideWorldBounds = true;
 		tanksList[i] = tnk;
 	}
 
@@ -55,7 +57,6 @@ var eurecaClientSetup = function() {
 	{
         if(id == myId){
             tanksList[id].cursor = state;
-            tanksList[id].tank.angle = state.angle;
 			tanksList[id].update();
             return;
         }
@@ -70,7 +71,7 @@ var eurecaClientSetup = function() {
 }
 
 
-Tank = function (index, game, player) {
+Tank = function (index, game, player, team) {
 	this.cursor = {
 		left:false,
 		right:false,
@@ -88,12 +89,22 @@ Tank = function (index, game, player) {
 
     this.game = game;
     this.player = player;
+    this.team = team;
 
 	this.currentSpeed = 0;
     this.alive = true;
 
     this.shadow = game.add.sprite(x, y, 'shadow');
     this.tank = game.add.sprite(x, y, 'enemy');
+
+    if(this.team){
+        this.tank.tint = 0x0000ff;
+    }else{
+        this.tank.tint = 0xff0000;
+    }
+
+    this.tank.scale.setTo(0.3,0.3);
+    this.shadow.scale.setTo(0.7,0.7);
 
     this.shadow.anchor.set(0.5);
     this.tank.anchor.set(0.5);
@@ -180,10 +191,11 @@ var game = new Phaser.Game(800, 600, Phaser.AUTO, 'phaser-example', { preload: p
 function preload () {
     //game.load.atlas('tank', 'assets/tanks.png', 'assets/tanks.json');
     //game.load.atlas('enemy', 'assets/enemy-tanks.png', 'assets/tanks.json');
-    game.load.image('enemy', 'assets/bluecar.png');
+    game.load.image('enemy', 'assets/RD2.png');
     game.load.image('shadow', 'assets/shadow.png')
-    game.load.image('logo', 'assets/logo.png');
-    game.load.image('earth', 'assets/light_grass.png');
+    //game.load.image('logo', 'assets/logo.png');
+    game.load.image('earth', 'assets/dark_grass.png');
+    game.load.image('flagzone', 'assets/scorched_earth.png')
     game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 }
 
@@ -195,15 +207,19 @@ function create () {
 
     //  Our tiled scrolling background
     land = game.add.tileSprite(0, 0, 800, 600, 'earth');
+    flagzoneTop = game.add.tileSprite(-1000,-1000,2000,200,'flagzone');
+    flagzoneBottom = game.add.tileSprite(-1000,800,2000,200,'flagzone');
+
     land.fixedToCamera = true;
 
     tanksList = {};
 
-	player = new Tank(myId, game, tank);
+	player = new Tank(myId, game, tank, myTeam);
 	tanksList[myId] = player;
 	tank = player.tank;
 	tank.x = 0;
 	tank.y = 0;
+    tank.team = myTeam;
 	shadow = player.shadow;
 
     //game.physics.arcade.enable(player.tank);
