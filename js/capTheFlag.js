@@ -91,7 +91,6 @@ Tank = function (index, game, player, team) {
     this.player = player;
     this.team = team;
 
-	this.currentSpeed = 0;
     this.alive = true;
 
     this.shadow = game.add.sprite(x, y, 'shadow');
@@ -111,13 +110,11 @@ Tank = function (index, game, player, team) {
 
     this.tank.id = index;
     game.physics.arcade.enable(this.tank);
-    this.tank.body.immovable = true;
+    this.tank.body.drag.set(1000);
+    this.tank.body.maxVelocity.set(300);
     this.tank.body.collideWorldBounds = true;
 
     this.tank.angle = 0;
-
-    game.physics.arcade.velocityFromRotation(this.tank.rotation, 0, this.tank.body.velocity);
-
 };
 
 Tank.prototype.update = function() {
@@ -148,32 +145,20 @@ Tank.prototype.update = function() {
     if (this.cursor.left)
     {
         this.tank.angle -= 3;
+        game.physics.arcade.accelerationFromRotation(this.tank.rotation, this.tank.body.speed, this.tank.body.velocity);
     }
     else if (this.cursor.right)
     {
         this.tank.angle += 3;
-    }
-    if (this.cursor.up)
-    {
-        //  The speed we'll travel at
-        this.currentSpeed = 300;
-    }
-    else
-    {
-        if (this.currentSpeed > 0)
-        {
-            this.currentSpeed -= 4;
-        }
+        game.physics.arcade.accelerationFromRotation(this.tank.rotation, this.tank.body.speed, this.tank.body.velocity);
     }
 
-    if (this.currentSpeed > 0)
+    if (this.cursor.up)
     {
-        game.physics.arcade.velocityFromRotation(this.tank.rotation, this.currentSpeed, this.tank.body.velocity);
+        game.physics.arcade.accelerationFromRotation(this.tank.rotation, 1000, this.tank.body.acceleration);
+    } else{
+        game.physics.arcade.accelerationFromRotation(this.tank.rotation, 0, this.tank.body.acceleration);
     }
-	else
-	{
-		game.physics.arcade.velocityFromRotation(this.tank.rotation, 0, this.tank.body.velocity);
-	}
 
     this.shadow.x = this.tank.x;
     this.shadow.y = this.tank.y;
@@ -222,15 +207,6 @@ function create () {
     tank.team = myTeam;
 	shadow = player.shadow;
 
-    //game.physics.arcade.enable(player.tank);
-    //player.tank.body.immovable = true;
-    //player.tank.body.collideWorldBounds = true;
-    //player.tank.body.bounce.setTo(0, 0);
-
-    //game.pad = game.plugins.add(Phaser.VirtualJoystick);
-    //game.stick = game.pad.addStick(0, 0, 200, 'generic');
-    //game.stick.alignBottomLeft(20);
-
     tank.bringToTop();
 
     //logo = game.add.sprite(0, 200, 'logo');
@@ -267,15 +243,9 @@ function update () {
 
     for (var i in tanksList){
         var curTank = tanksList[i];
+        if(curTank.id == myId) continue;
         if(curTank.alive){
             game.physics.arcade.collide(player.tank, curTank.tank);
-            if(game.physics.arcade.overlap(player.tank, curTank.tank)){
-                player.tank.body.moves = false;
-                curTank.tank.body.moves = false;
-            }else{
-                player.tank.body.moves = true;
-                curTank.tank.body.moves = true;
-            }
             curTank.update();
         }
     }
