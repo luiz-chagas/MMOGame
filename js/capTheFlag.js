@@ -12,6 +12,9 @@ var tanksList;
 var logo;
 var cursors;
 var ready = false;
+var move = false;
+var left = false;
+var right = false;
 var eurecaServer;
 //this function will handle client communication with the server
 var eurecaClientSetup = function() {
@@ -111,6 +114,7 @@ Tank = function (index, game, player, team) {
     this.tank.id = index;
     game.physics.arcade.enable(this.tank);
     this.tank.body.drag.set(1000);
+    //this.tank.body.angulardrag = 500;
     this.tank.body.maxVelocity.set(300);
     this.tank.body.collideWorldBounds = true;
 
@@ -145,12 +149,12 @@ Tank.prototype.update = function() {
     if (this.cursor.left)
     {
         this.tank.angle -= 3;
-        game.physics.arcade.accelerationFromRotation(this.tank.rotation, this.tank.body.speed, this.tank.body.velocity);
+        //game.physics.arcade.accelerationFromRotation(this.tank.rotation, this.tank.body.speed, this.tank.body.velocity);
     }
     else if (this.cursor.right)
     {
         this.tank.angle += 3;
-        game.physics.arcade.accelerationFromRotation(this.tank.rotation, this.tank.body.speed, this.tank.body.velocity);
+        //game.physics.arcade.accelerationFromRotation(this.tank.rotation, this.tank.body.speed, this.tank.body.velocity);
     }
 
     if (this.cursor.up)
@@ -181,6 +185,8 @@ function preload () {
     //game.load.image('logo', 'assets/logo.png');
     game.load.image('earth', 'assets/dark_grass.png');
     game.load.image('flagzone', 'assets/scorched_earth.png')
+    game.load.spritesheet('buttonfire', 'assets/button-round.png',96,96);
+    game.load.spritesheet('buttonhorizontal', 'assets/button-horizontal.png',96,64);
     game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 }
 
@@ -209,6 +215,25 @@ function create () {
 
     tank.bringToTop();
 
+    // Virtual Joystick
+    buttonfire = game.add.button(670, 470, 'buttonfire', null, this, 0, 1, 0, 1);
+    buttonfire.fixedToCamera = true;
+    buttonfire.events.onInputOut.add(function(){player.move=false;});
+    buttonfire.events.onInputDown.add(function(){player.move=true;});
+    buttonfire.events.onInputUp.add(function(){player.move=false;});
+
+    buttonleft = game.add.button(20, 490, 'buttonhorizontal', null, this, 0, 1, 0, 1);
+    buttonleft.fixedToCamera = true;
+    buttonleft.events.onInputOut.add(function(){player.left=false;});
+    buttonleft.events.onInputDown.add(function(){player.left=true;});
+    buttonleft.events.onInputUp.add(function(){player.left=false;});
+
+    buttonright = game.add.button(140, 490, 'buttonhorizontal', null, this, 0, 1, 0, 1);
+    buttonright.fixedToCamera = true;
+    buttonright.events.onInputOut.add(function(){player.right=false;});
+    buttonright.events.onInputDown.add(function(){player.right=true;});
+    buttonright.events.onInputUp.add(function(){player.right=false;});
+
     //logo = game.add.sprite(0, 200, 'logo');
     //logo.fixedToCamera = true;
 
@@ -232,9 +257,9 @@ function update () {
 	//do not update if client not ready
 	if (!ready) return;
 
-	player.input.left = cursors.left.isDown;
-	player.input.right = cursors.right.isDown;
-	player.input.up = cursors.up.isDown;
+	player.input.left = cursors.left.isDown || player.left;
+	player.input.right = cursors.right.isDown || player.right;
+	player.input.up = cursors.up.isDown || player.move;
 	player.input.tx = game.input.x+ game.camera.x;
 	player.input.ty = game.input.y+ game.camera.y;
 
