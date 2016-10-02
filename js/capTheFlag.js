@@ -114,7 +114,6 @@ Tank = function (index, game, player, team) {
     this.tank.id = index;
     game.physics.arcade.enable(this.tank);
     this.tank.body.drag.set(1000);
-    //this.tank.body.angulardrag = 500;
     this.tank.body.maxVelocity.set(300);
     this.tank.body.collideWorldBounds = true;
 
@@ -149,12 +148,17 @@ Tank.prototype.update = function() {
     if (this.cursor.left)
     {
         this.tank.angle -= 3;
-        //game.physics.arcade.accelerationFromRotation(this.tank.rotation, this.tank.body.speed, this.tank.body.velocity);
+        //this.tank.body.angularVelocity -= 3;
+        game.physics.arcade.accelerationFromRotation(this.tank.rotation, this.tank.body.speed, this.tank.body.velocity);
     }
     else if (this.cursor.right)
     {
         this.tank.angle += 3;
-        //game.physics.arcade.accelerationFromRotation(this.tank.rotation, this.tank.body.speed, this.tank.body.velocity);
+        //this.tank.body.angularVelocity += 3;
+        game.physics.arcade.accelerationFromRotation(this.tank.rotation, this.tank.body.speed, this.tank.body.velocity);
+    }
+    else{
+        this.tank.body.angularVelocity = 0;
     }
 
     if (this.cursor.up)
@@ -188,6 +192,8 @@ function preload () {
     game.load.spritesheet('buttonfire', 'assets/button-round.png',96,96);
     game.load.spritesheet('buttonhorizontal', 'assets/button-horizontal.png',96,64);
     game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+    game.scale.pageAlignHorizontally = true;
+    game.scale.pageAlignVertically = true;
 }
 
 function create () {
