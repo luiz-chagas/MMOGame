@@ -49,6 +49,7 @@ var eurecaClientSetup = function() {
 	eurecaClient.exports.spawnEnemy = function(i, x, y, team)
 	{
 		if (i == myId) return; //this is me
+        if(tanksList[i] != null) return; //avoid duplicates
 		console.log('Spawn %s %s %s', i, x, y);
 		var tnk = new Tank(i, game, tank, team);
         tnk.tank.x = x;
@@ -99,10 +100,14 @@ Tank = function (index, game, player, team) {
     this.shadow = game.add.sprite(x, y, 'shadow');
     this.tank = game.add.sprite(x, y, 'enemy');
 
+    this.tank.x = game.rnd.integerInRange(0,3000);
+
     if(this.team){
         this.tank.tint = 0x0000ff;
+        this.tank.y = game.rnd.integerInRange(200,1500);
     }else{
         this.tank.tint = 0xff0000;
+        this.tank.y = game.rnd.integerInRange(1500,2800);
     }
 
     this.tank.scale.setTo(0.3,0.3);
@@ -113,7 +118,7 @@ Tank = function (index, game, player, team) {
 
     this.tank.id = index;
     game.physics.arcade.enable(this.tank);
-    this.tank.body.drag.set(1000);
+    this.tank.body.drag.set(300);
     this.tank.body.maxVelocity.set(300);
     this.tank.body.collideWorldBounds = true;
 
@@ -157,13 +162,10 @@ Tank.prototype.update = function() {
         //this.tank.body.angularVelocity += 3;
         game.physics.arcade.accelerationFromRotation(this.tank.rotation, this.tank.body.speed, this.tank.body.velocity);
     }
-    else{
-        this.tank.body.angularVelocity = 0;
-    }
 
     if (this.cursor.up)
     {
-        game.physics.arcade.accelerationFromRotation(this.tank.rotation, 1000, this.tank.body.acceleration);
+        game.physics.arcade.accelerationFromRotation(this.tank.rotation, 300, this.tank.body.acceleration);
     } else{
         game.physics.arcade.accelerationFromRotation(this.tank.rotation, 0, this.tank.body.acceleration);
     }
@@ -179,7 +181,7 @@ Tank.prototype.kill = function() {
 	this.shadow.kill();
 };
 
-var game = new Phaser.Game(800, 600, Phaser.AUTO, 'phaser-example', { preload: preload, create: eurecaClientSetup, update: update, render: render });
+var game = new Phaser.Game(800, 800, Phaser.AUTO, 'phaser-example', { preload: preload, create: eurecaClientSetup, update: update, render: render });
 
 function preload () {
     //game.load.atlas('tank', 'assets/tanks.png', 'assets/tanks.json');
@@ -198,14 +200,19 @@ function preload () {
 
 function create () {
     game.physics.startSystem(Phaser.Physics.ARCADE);
-    //  Resize our game world to be a 2000 x 2000 square
-    game.world.setBounds(-1000, -1000, 2000, 2000);
+    //  Resize our game world to be a 3000 x 3000 square
+    game.world.setBounds(0, 0, 3000, 3000);
 	game.stage.disableVisibilityChange  = true;
 
     //  Our tiled scrolling background
-    land = game.add.tileSprite(0, 0, 800, 600, 'earth');
-    flagzoneTop = game.add.tileSprite(-1000,-1000,2000,200,'flagzone');
-    flagzoneBottom = game.add.tileSprite(-1000,800,2000,200,'flagzone');
+    land = game.add.tileSprite(0, 0, 800, 800, 'earth');
+    flagzoneTop = game.add.tileSprite(0,0,3000,200,'flagzone');
+    flagzoneBottom = game.add.tileSprite(0,2800,3000,200,'flagzone');
+
+    var middleLine = game.add.graphics(0,0);
+    middleLine.moveTo(0,1495);
+    middleLine.lineStyle(10,0xFFFFFF);
+    middleLine.lineTo(3000, 1495);
 
     land.fixedToCamera = true;
 
@@ -214,27 +221,25 @@ function create () {
 	player = new Tank(myId, game, tank, myTeam);
 	tanksList[myId] = player;
 	tank = player.tank;
-	tank.x = 0;
-	tank.y = 0;
     tank.team = myTeam;
-	shadow = player.shadow;
+    shadow = player.shadow;
 
     tank.bringToTop();
 
     // Virtual Joystick
-    buttonfire = game.add.button(670, 470, 'buttonfire', null, this, 0, 1, 0, 1);
+    buttonfire = game.add.button(670, 670, 'buttonfire', null, this, 0, 1, 0, 1);
     buttonfire.fixedToCamera = true;
     buttonfire.events.onInputOut.add(function(){player.move=false;});
     buttonfire.events.onInputDown.add(function(){player.move=true;});
     buttonfire.events.onInputUp.add(function(){player.move=false;});
 
-    buttonleft = game.add.button(20, 490, 'buttonhorizontal', null, this, 0, 1, 0, 1);
+    buttonleft = game.add.button(20, 690, 'buttonhorizontal', null, this, 0, 1, 0, 1);
     buttonleft.fixedToCamera = true;
     buttonleft.events.onInputOut.add(function(){player.left=false;});
     buttonleft.events.onInputDown.add(function(){player.left=true;});
     buttonleft.events.onInputUp.add(function(){player.left=false;});
 
-    buttonright = game.add.button(140, 490, 'buttonhorizontal', null, this, 0, 1, 0, 1);
+    buttonright = game.add.button(140, 690, 'buttonhorizontal', null, this, 0, 1, 0, 1);
     buttonright.fixedToCamera = true;
     buttonright.events.onInputOut.add(function(){player.right=false;});
     buttonright.events.onInputDown.add(function(){player.right=true;});
@@ -246,7 +251,7 @@ function create () {
     //game.input.onDown.add(removeLogo, this);
 
     game.camera.follow(tank);
-    game.camera.deadzone = new Phaser.Rectangle(150, 150, 500, 300);
+    game.camera.deadzone = new Phaser.Rectangle(200, 200, 400, 400);
     game.camera.focusOnXY(0, 0);
 
     cursors = game.input.keyboard.createCursorKeys();
