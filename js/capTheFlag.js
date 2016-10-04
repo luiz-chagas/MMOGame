@@ -8,6 +8,8 @@ var shadow;
 var team;
 var tank;
 var player;
+var blueCircle;
+var redCircle;
 var tanksList;
 var logo;
 var cursors;
@@ -102,6 +104,11 @@ Tank = function (index, game, player, team) {
 
     this.shadow = game.add.sprite(x, y, 'shadow');
     this.tank = game.add.sprite(x, y, 'enemy');
+    this.redCircle = game.add.sprite(x, y, 'rCircle');
+    this.blueCircle = game.add.sprite(x, y, 'bCircle');
+
+    this.redCircle.visible = false;
+    this.blueCircle.visible = false;
 
     this.tank.x = game.rnd.integerInRange(0,3000);
 
@@ -114,10 +121,13 @@ Tank = function (index, game, player, team) {
     }
 
     this.tank.scale.setTo(0.3,0.3);
+    this.redCircle.scale.setTo(0.45,0.45);
     this.shadow.scale.setTo(0.7,0.7);
 
     this.shadow.anchor.set(0.5);
     this.tank.anchor.set(0.5);
+    this.redCircle.anchor.set(0.5);
+    this.blueCircle.anchor.set(0.5);
 
     this.tank.id = index;
     game.physics.arcade.enable(this.tank);
@@ -176,11 +186,17 @@ Tank.prototype.update = function() {
 
     if(this.cursor.hasFlag){
         this.hasFlag = true;
-        this.tank.tint = 0x000000;
+        this.redCircle.visible = true;
     }
 
     this.shadow.x = this.tank.x;
     this.shadow.y = this.tank.y;
+    this.redCircle.x = this.tank.x;
+    this.redCircle.y = this.tank.y;
+    this.blueCircle.x = this.tank.x;
+    this.blueCircle.y = this.tank.y;
+
+
     this.shadow.rotation = this.tank.rotation;
 };
 
@@ -200,6 +216,8 @@ function preload () {
     //game.load.image('logo', 'assets/logo.png');
     game.load.image('earth', 'assets/dark_grass.png');
     game.load.image('flagzone', 'assets/scorched_earth.png')
+    game.load.image('bCircle', 'assets/blueCircle.png');
+    game.load.image('rCircle', 'assets/redCircle.png');
     game.load.spritesheet('buttonfire', 'assets/button-round.png',96,96);
     game.load.spritesheet('buttonhorizontal', 'assets/button-horizontal.png',96,64);
     game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
