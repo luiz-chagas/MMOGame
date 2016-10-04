@@ -61,10 +61,12 @@ var eurecaClientSetup = function() {
 	{
         if(id == myId){
             tanksList[id].cursor = state;
+            tanksList[id].flag = state.flag;
 			tanksList[id].update();
             return;
         }
 		if (tanksList[id])  {
+            tanksList[id].flag = state.flag;
 			tanksList[id].cursor = state;
 			tanksList[id].tank.x = state.x;
 			tanksList[id].tank.y = state.y;
@@ -95,6 +97,7 @@ Tank = function (index, game, player, team) {
     this.player = player;
     this.team = team;
 
+    this.hasFlag = false;
     this.alive = true;
 
     this.shadow = game.add.sprite(x, y, 'shadow');
@@ -143,6 +146,7 @@ Tank.prototype.update = function() {
 			this.input.x = this.tank.x;
 			this.input.y = this.tank.y;
 			this.input.angle = this.tank.angle;
+            this.input.hasFlag = this.hasFlag;
 
 			eurecaServer.handleKeys(this.input);
 		}
@@ -170,6 +174,11 @@ Tank.prototype.update = function() {
         game.physics.arcade.accelerationFromRotation(this.tank.rotation, 0, this.tank.body.acceleration);
     }
 
+    if(this.cursor.hasFlag){
+        this.hasFlag = true;
+        this.tank.tint = 0x000000;
+    }
+
     this.shadow.x = this.tank.x;
     this.shadow.y = this.tank.y;
     this.shadow.rotation = this.tank.rotation;
@@ -181,7 +190,7 @@ Tank.prototype.kill = function() {
 	this.shadow.kill();
 };
 
-var game = new Phaser.Game(800, 800, Phaser.AUTO, 'phaser-example', { preload: preload, create: eurecaClientSetup, update: update, render: render });
+var game = new Phaser.Game(960, 640, Phaser.AUTO, 'phaser-example', { preload: preload, create: eurecaClientSetup, update: update, render: render });
 
 function preload () {
     //game.load.atlas('tank', 'assets/tanks.png', 'assets/tanks.json');
@@ -205,9 +214,14 @@ function create () {
 	game.stage.disableVisibilityChange  = true;
 
     //  Our tiled scrolling background
-    land = game.add.tileSprite(0, 0, 800, 800, 'earth');
+    land = game.add.tileSprite(0, 0, 960, 640, 'earth');
     flagzoneTop = game.add.tileSprite(0,0,3000,200,'flagzone');
+    flagzoneTop.tint = 0x3090C7;
     flagzoneBottom = game.add.tileSprite(0,2800,3000,200,'flagzone');
+    flagzoneBottom.tint = 0xF62217;
+
+    game.physics.arcade.enableBody(flagzoneTop);
+    game.physics.arcade.enableBody(flagzoneBottom);
 
     var middleLine = game.add.graphics(0,0);
     middleLine.moveTo(0,1495);
@@ -226,24 +240,26 @@ function create () {
 
     tank.bringToTop();
 
-    // Virtual Joystick
-    buttonfire = game.add.button(670, 670, 'buttonfire', null, this, 0, 1, 0, 1);
-    buttonfire.fixedToCamera = true;
-    buttonfire.events.onInputOut.add(function(){player.move=false;});
-    buttonfire.events.onInputDown.add(function(){player.move=true;});
-    buttonfire.events.onInputUp.add(function(){player.move=false;});
+    if (!game.device.desktop){
+        // Virtual Joystick
+        buttonfire = game.add.button(800, 500, 'buttonfire', null, this, 0, 1, 0, 1);
+        buttonfire.fixedToCamera = true;
+        buttonfire.events.onInputOut.add(function(){player.move=false;});
+        buttonfire.events.onInputDown.add(function(){player.move=true;});
+        buttonfire.events.onInputUp.add(function(){player.move=false;});
 
-    buttonleft = game.add.button(20, 690, 'buttonhorizontal', null, this, 0, 1, 0, 1);
-    buttonleft.fixedToCamera = true;
-    buttonleft.events.onInputOut.add(function(){player.left=false;});
-    buttonleft.events.onInputDown.add(function(){player.left=true;});
-    buttonleft.events.onInputUp.add(function(){player.left=false;});
+        buttonleft = game.add.button(40, 520, 'buttonhorizontal', null, this, 0, 1, 0, 1);
+        buttonleft.fixedToCamera = true;
+        buttonleft.events.onInputOut.add(function(){player.left=false;});
+        buttonleft.events.onInputDown.add(function(){player.left=true;});
+        buttonleft.events.onInputUp.add(function(){player.left=false;});
 
-    buttonright = game.add.button(140, 690, 'buttonhorizontal', null, this, 0, 1, 0, 1);
-    buttonright.fixedToCamera = true;
-    buttonright.events.onInputOut.add(function(){player.right=false;});
-    buttonright.events.onInputDown.add(function(){player.right=true;});
-    buttonright.events.onInputUp.add(function(){player.right=false;});
+        buttonright = game.add.button(180, 520, 'buttonhorizontal', null, this, 0, 1, 0, 1);
+        buttonright.fixedToCamera = true;
+        buttonright.events.onInputOut.add(function(){player.right=false;});
+        buttonright.events.onInputDown.add(function(){player.right=true;});
+        buttonright.events.onInputUp.add(function(){player.right=false;});
+    }
 
     //logo = game.add.sprite(0, 200, 'logo');
     //logo.fixedToCamera = true;
@@ -251,7 +267,7 @@ function create () {
     //game.input.onDown.add(removeLogo, this);
 
     game.camera.follow(tank);
-    game.camera.deadzone = new Phaser.Rectangle(200, 200, 400, 400);
+    //game.camera.deadzone = new Phaser.Rectangle(200, 200, 610, 250);
     game.camera.focusOnXY(0, 0);
 
     cursors = game.input.keyboard.createCursorKeys();
@@ -277,6 +293,9 @@ function update () {
     land.tilePosition.x = -game.camera.x;
     land.tilePosition.y = -game.camera.y;
 
+    game.physics.arcade.overlap(player.tank, flagzoneBottom, flag);
+    game.physics.arcade.overlap(player.tank, flagzoneTop, flag);
+
     for (var i in tanksList){
         var curTank = tanksList[i];
         if(curTank.id == myId) continue;
@@ -287,4 +306,13 @@ function update () {
     }
 }
 
-function render () {}
+function render () {
+}
+
+function flag(targetTank, targetZone){
+    if(tanksList[targetTank.id].team == 1 && targetZone == flagzoneBottom){
+        tanksList[targetTank.id].hasFlag = true;
+    } else if (tanksList[targetTank.id].team == 0 && targetZone == flagzoneTop){
+        tanksList[targetTank.id].hasFlag = true;
+    }
+}
