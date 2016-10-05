@@ -13,6 +13,7 @@ var redCircle;
 var tanksList;
 var logo;
 var cursors;
+var players;
 var ready = false;
 var move = false;
 var left = false;
@@ -208,7 +209,8 @@ Tank.prototype.update = function() {
 };
 
 Tank.prototype.kill = function() {
-	this.alive = false;
+    delete tanksList[this.tank.id];
+    this.alive = false;
 	this.tank.kill();
 	this.shadow.kill();
 };
@@ -286,6 +288,10 @@ function create () {
         buttonright.events.onInputUp.add(function(){player.right=false;});
     }
 
+    var style = { font: "16px Arial", fill: "#ffffff"};
+    players = game.add.text(32,32, "Players: " + Object.keys(tanksList).length, style);
+    players.fixedToCamera = true;
+
     //logo = game.add.sprite(0, 200, 'logo');
     //logo.fixedToCamera = true;
 
@@ -308,6 +314,8 @@ function removeLogo () {
 function update () {
 	//do not update if client not ready
 	if (!ready) return;
+
+    players.setText("Players: " + Object.keys(tanksList).length);
 
 	player.input.left = cursors.left.isDown || player.left;
 	player.input.right = cursors.right.isDown || player.right;
