@@ -121,7 +121,8 @@ Tank = function (index, game, player, team) {
     }
 
     this.tank.scale.setTo(0.3,0.3);
-    this.redCircle.scale.setTo(0.45,0.45);
+    this.redCircle.scale.setTo(0.5,0.5);
+    this.blueCircle.scale.setTo(0.5,0.5);
     this.shadow.scale.setTo(0.7,0.7);
 
     this.shadow.anchor.set(0.5);
@@ -186,7 +187,13 @@ Tank.prototype.update = function() {
 
     if(this.cursor.hasFlag){
         this.hasFlag = true;
-        this.redCircle.visible = true;
+        if(this.team == 1)
+            this.redCircle.visible = true;
+        else
+            this.blueCircle.visible = true;
+    } else{
+        this.redCircle.visible = false;
+        this.blueCircle.visible = false;
     }
 
     this.shadow.x = this.tank.x;
@@ -332,5 +339,11 @@ function flag(targetTank, targetZone){
         tanksList[targetTank.id].hasFlag = true;
     } else if (tanksList[targetTank.id].team == 0 && targetZone == flagzoneTop){
         tanksList[targetTank.id].hasFlag = true;
+    }
+
+    if(tanksList[targetTank.id].team == 1 && targetZone == flagzoneTop && tanksList[targetTank.id].hasFlag){
+        tanksList[targetTank.id].hasFlag = false;
+    } else if (tanksList[targetTank.id].team == 0 && targetZone == flagzoneBottom && tanksList[targetTank.id].hasFlag){
+        tanksList[targetTank.id].hasFlag = false;
     }
 }
