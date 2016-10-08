@@ -8,9 +8,11 @@ app.use(express.static(__dirname));
 
 var EurecaServer = require('eureca.io').EurecaServer;
 
-var eurecaServer = new EurecaServer({allow:['setId', 'spawnEnemy', 'kill', 'updateState']});
+var eurecaServer = new EurecaServer({allow:['setId', 'spawnEnemy', 'kill', 'updateState', 'endGame']});
 var clients = {};
 var nPlayers = 0;
+var blueFlag = "empty";
+var redFlag = "empty";
 
 eurecaServer.attach(server);
 
@@ -26,7 +28,12 @@ eurecaServer.onConnect(function (conn){
 eurecaServer.onDisconnect(function (conn){
     console.log("Client disconnected.\n");
     nPlayers--;
-    var removeId = clients[conn.id].id;
+    if(blueFlag == conn.id){
+        blueFlag = "empty";
+    } else if (redFlag == conn.id) {
+        redFlag = "empty";
+    }
+
     delete clients[conn.id];
     for(var c in clients){
         var remote = clients[c].remote;
@@ -52,13 +59,50 @@ eurecaServer.exports.handshake = function()
 eurecaServer.exports.handleKeys = function (keys) {
 	var conn = this.connection;
 	var updatedClient = clients[conn.id];
+    var textEvent = "";
+    var eventGoal = false;
+
+    if(keys.hasGoal){
+        eventGoal = true;
+        if(keys.team == 1){
+            textEvent = "Blue";
+
+        }else{
+            textEvent = "Red";
+        }
+        textEvent += " team scores!";
+        keys.hasFlag = 0;
+        keys.hasGoal = 0;
+        blueFlag = "empty";
+        redFlag = "empty";
+    }
+
+    if(keys.hasFlag){
+        if(keys.team == 1){
+            if(redFlag!=conn.id && redFlag != "empty"){
+                keys.hasFlag = false;
+            }else{
+                redFlag = conn.id;
+            }
+        }else{
+            if(blueFlag!=conn.id && blueFlag != "empty"){
+                keys.hasFlag = false;
+            }else{
+                blueFlag = conn.id;
+            }
+        }
+    }
 
 	for (var c in clients)
 	{
 		var remote = clients[c].remote;
+        if(eventGoal){
+            remote.endGame(textEvent);
+        }
 		remote.updateState(updatedClient.id, keys);
 		clients[c].laststate = keys;
 	}
+    eventGoal = false;
 }
 
 server.listen(8000);

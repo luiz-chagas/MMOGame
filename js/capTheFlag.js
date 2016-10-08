@@ -5,8 +5,10 @@ var land;
 var flagzoneTop;
 var flagzoneBottom;
 var shadow;
+var hasFlag = false;
 var team;
 var tank;
+var statusText;
 var player;
 var blueCircle;
 var redCircle;
@@ -64,12 +66,10 @@ var eurecaClientSetup = function() {
 	{
         if(id == myId){
             tanksList[id].cursor = state;
-            tanksList[id].flag = state.flag;
 			tanksList[id].update();
             return;
         }
 		if (tanksList[id])  {
-            tanksList[id].flag = state.flag;
 			tanksList[id].cursor = state;
 			tanksList[id].tank.x = state.x;
 			tanksList[id].tank.y = state.y;
@@ -77,6 +77,12 @@ var eurecaClientSetup = function() {
 			tanksList[id].update();
 		}
 	}
+
+    eurecaClient.exports.endGame = function(newText)
+    {
+        statusText.setText(newText);
+        game.time.events.add(Phaser.Timer.SECOND * 4, resetText, this);
+    }
 }
 
 
@@ -101,6 +107,7 @@ Tank = function (index, game, player, team) {
     this.team = team;
 
     this.hasFlag = false;
+    this.hasGoal = false;
     this.alive = true;
 
     this.shadow = game.add.sprite(x, y, 'shadow');
@@ -134,7 +141,7 @@ Tank = function (index, game, player, team) {
     this.tank.id = index;
     game.physics.arcade.enable(this.tank);
     this.tank.body.drag.set(300);
-    this.tank.body.maxVelocity.set(300);
+    this.tank.body.maxVelocity.set(400);
     this.tank.body.collideWorldBounds = true;
 
     this.tank.angle = 0;
@@ -159,12 +166,17 @@ Tank.prototype.update = function() {
 			this.input.y = this.tank.y;
 			this.input.angle = this.tank.angle;
             this.input.hasFlag = this.hasFlag;
+            this.input.hasGoal = this.hasGoal;
+            this.input.team = this.team;
 
 			eurecaServer.handleKeys(this.input);
 		}
 	}
 
 	//cursor value is now updated by eurecaClient.exports.updateState method
+
+    this.hasGoal = this.cursor.hasGoal;
+    this.hasFlag = this.cursor.hasFlag;
 
     if (this.cursor.left)
     {
@@ -181,13 +193,12 @@ Tank.prototype.update = function() {
 
     if (this.cursor.up)
     {
-        game.physics.arcade.accelerationFromRotation(this.tank.rotation, 300, this.tank.body.acceleration);
+        game.physics.arcade.accelerationFromRotation(this.tank.rotation, 200, this.tank.body.acceleration);
     } else{
         game.physics.arcade.accelerationFromRotation(this.tank.rotation, 0, this.tank.body.acceleration);
     }
 
     if(this.cursor.hasFlag){
-        this.hasFlag = true;
         if(this.team == 1)
             this.redCircle.visible = true;
         else
@@ -213,6 +224,8 @@ Tank.prototype.kill = function() {
     this.alive = false;
 	this.tank.kill();
 	this.shadow.kill();
+    this.redCircle.kill();
+    this.blueCircle.kill();
 };
 
 var game = new Phaser.Game(960, 640, Phaser.AUTO, 'phaser-example', { preload: preload, create: eurecaClientSetup, update: update, render: render });
@@ -288,9 +301,14 @@ function create () {
         buttonright.events.onInputUp.add(function(){player.right=false;});
     }
 
-    var style = { font: "16px Arial", fill: "#ffffff"};
-    players = game.add.text(32,32, "Players: " + Object.keys(tanksList).length, style);
+    var style = {font: "64px Arial", fill: "#ffffff"};
+    players = game.add.text(32,32, "Players: " + Object.keys(tanksList).length,
+                            {font: "16px Arial", fill: "#ffffff"});
     players.fixedToCamera = true;
+
+    statusText = game.add.text(game.camera.width/2,(game.camera.height/2)-150,"", style);
+    statusText.fixedToCamera = true;
+    statusText.anchor.setTo(0.5);
 
     //logo = game.add.sprite(0, 200, 'logo');
     //logo.fixedToCamera = true;
@@ -326,12 +344,11 @@ function update () {
     land.tilePosition.x = -game.camera.x;
     land.tilePosition.y = -game.camera.y;
 
-    game.physics.arcade.overlap(player.tank, flagzoneBottom, flag);
-    game.physics.arcade.overlap(player.tank, flagzoneTop, flag);
+    game.physics.arcade.overlap(player.tank, flagzoneBottom, tryFlag);
+    game.physics.arcade.overlap(player.tank, flagzoneTop, tryFlag);
 
     for (var i in tanksList){
         var curTank = tanksList[i];
-        if(curTank.id == myId) continue;
         if(curTank.alive){
             game.physics.arcade.collide(player.tank, curTank.tank);
             curTank.update();
@@ -342,7 +359,7 @@ function update () {
 function render () {
 }
 
-function flag(targetTank, targetZone){
+function tryFlag(targetTank, targetZone){
     if(tanksList[targetTank.id].team == 1 && targetZone == flagzoneBottom){
         tanksList[targetTank.id].hasFlag = true;
     } else if (tanksList[targetTank.id].team == 0 && targetZone == flagzoneTop){
@@ -350,8 +367,12 @@ function flag(targetTank, targetZone){
     }
 
     if(tanksList[targetTank.id].team == 1 && targetZone == flagzoneTop && tanksList[targetTank.id].hasFlag){
-        tanksList[targetTank.id].hasFlag = false;
+        tanksList[targetTank.id].hasGoal = true;
     } else if (tanksList[targetTank.id].team == 0 && targetZone == flagzoneBottom && tanksList[targetTank.id].hasFlag){
-        tanksList[targetTank.id].hasFlag = false;
+        tanksList[targetTank.id].hasGoal = true;
     }
+}
+
+function resetText(){
+    statusText.setText("");
 }
