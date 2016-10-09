@@ -267,6 +267,8 @@ function create () {
     middleLine.moveTo(0,1495);
     middleLine.lineStyle(10,0xFFFFFF);
     middleLine.lineTo(3000, 1495);
+    middleLine.drawCircle(1500,1500,600);
+
 
     land.fixedToCamera = true;
 
