@@ -23,60 +23,58 @@ var right = false;
 var eurecaServer;
 //this function will handle client communication with the server
 var eurecaClientSetup = function() {
-	//create an instance of eureca.io client
-	var eurecaClient = new Eureca.Client();
+    //create an instance of eureca.io client
+    var eurecaClient = new Eureca.Client();
 
-	eurecaClient.ready(function (proxy) {
-		eurecaServer = proxy;
-	});
+    eurecaClient.ready(function (proxy) {
+        eurecaServer = proxy;
+    });
 
 
-	//methods defined under "exports" namespace become available in the server side
+    //methods defined under "exports" namespace become available in the server side
 
-	eurecaClient.exports.setId = function(id, team)
-	{
-		//create() is moved here to make sure nothing is created before uniq id assignation
-		myId = id;
+    eurecaClient.exports.setId = function(id, team)
+    {
+        //create() is moved here to make sure nothing is created before uniq id assignation
+        myId = id;
         myTeam = team;
-		create();
-		eurecaServer.handshake();
-		ready = true;
-	}
+        create();
+        eurecaServer.handshake();
+        ready = true;
+    }
 
-	eurecaClient.exports.kill = function(id)
-	{
-		if (tanksList[id]) {
-			tanksList[id].kill();
-			console.log('killing ', id, tanksList[id]);
-		}
-	}
+    eurecaClient.exports.kill = function(id)
+    {
+        if (tanksList[id]) {
+            tanksList[id].kill();
+            console.log('killing ', id, tanksList[id]);
+        }
+    }
 
-	eurecaClient.exports.spawnEnemy = function(i, x, y, team)
-	{
-		if (i == myId) return; //this is me
+    eurecaClient.exports.spawnEnemy = function(i, x, y, team)
+    {
+        if (i == myId) return; //this is me
         if(tanksList[i] != null) return; //avoid duplicates
-		console.log('Spawn %s %s %s', i, x, y);
-		var tnk = new Tank(i, game, tank, team);
+        console.log('Spawn %s %s %s', i, x, y);
+        var tnk = new Tank(i, game, tank, team);
         tnk.tank.x = x;
         tnk.tank.y = y;
-		tanksList[i] = tnk;
-	}
+        tanksList[i] = tnk;
+    }
 
-	eurecaClient.exports.updateState = function(id, state)
-	{
+    eurecaClient.exports.updateState = function(id, state)
+    {
         if(id == myId){
             tanksList[id].cursor = state;
-			tanksList[id].update();
-            return;
+            tanksList[id].update();
+        }else if (tanksList[id])  {
+            tanksList[id].cursor = state;
+            tanksList[id].tank.x = state.x;
+            tanksList[id].tank.y = state.y;
+            tanksList[id].tank.angle = state.angle;
+            tanksList[id].update();
         }
-		if (tanksList[id])  {
-			tanksList[id].cursor = state;
-			tanksList[id].tank.x = state.x;
-			tanksList[id].tank.y = state.y;
-			tanksList[id].tank.angle = state.angle;
-			tanksList[id].update();
-		}
-	}
+    }
 
     eurecaClient.exports.endGame = function(newText)
     {
@@ -87,17 +85,17 @@ var eurecaClientSetup = function() {
 
 
 Tank = function (index, game, player, team) {
-	this.cursor = {
-		left:false,
-		right:false,
-		up:false,
-	}
+    this.cursor = {
+        left:false,
+        right:false,
+        up:false,
+    }
 
-	this.input = {
-		left:false,
-		right:false,
-		up:false
-	}
+    this.input = {
+        left:false,
+        right:false,
+        up:false
+    }
 
     var x = 0;
     var y = 0;
@@ -149,31 +147,31 @@ Tank = function (index, game, player, team) {
 
 Tank.prototype.update = function() {
 
-	var inputChanged = (
-		this.cursor.left != this.input.left ||
-		this.cursor.right != this.input.right ||
-		this.cursor.up != this.input.up
-	);
+    var inputChanged = (
+        this.cursor.left != this.input.left ||
+        this.cursor.right != this.input.right ||
+        this.cursor.up != this.input.up
+    );
 
-	if (inputChanged)
-	{
-		//Handle input change here
-		//send new values to the server
-		if (this.tank.id == myId)
-		{
-			// send latest valid state to the server
-			this.input.x = this.tank.x;
-			this.input.y = this.tank.y;
-			this.input.angle = this.tank.angle;
+    if (inputChanged)
+    {
+        //Handle input change here
+        //send new values to the server
+        if (this.tank.id == myId)
+        {
+            // send latest valid state to the server
+            this.input.x = this.tank.x;
+            this.input.y = this.tank.y;
+            this.input.angle = this.tank.angle;
             this.input.hasFlag = this.hasFlag;
             this.input.hasGoal = this.hasGoal;
             this.input.team = this.team;
 
-			eurecaServer.handleKeys(this.input);
-		}
-	}
+            eurecaServer.handleKeys(this.input);
+        }
+    }
 
-	//cursor value is now updated by eurecaClient.exports.updateState method
+    //cursor value is now updated by eurecaClient.exports.updateState method
 
     this.hasGoal = this.cursor.hasGoal;
     this.hasFlag = this.cursor.hasFlag;
@@ -200,9 +198,9 @@ Tank.prototype.update = function() {
 
     if(this.cursor.hasFlag){
         if(this.team == 1)
-            this.redCircle.visible = true;
+        this.redCircle.visible = true;
         else
-            this.blueCircle.visible = true;
+        this.blueCircle.visible = true;
     } else{
         this.redCircle.visible = false;
         this.blueCircle.visible = false;
@@ -222,13 +220,13 @@ Tank.prototype.update = function() {
 Tank.prototype.kill = function() {
     delete tanksList[this.tank.id];
     this.alive = false;
-	this.tank.kill();
-	this.shadow.kill();
+    this.tank.kill();
+    this.shadow.kill();
     this.redCircle.kill();
     this.blueCircle.kill();
 };
 
-var game = new Phaser.Game(960, 640, Phaser.AUTO, 'phaser-example', { preload: preload, create: eurecaClientSetup, update: update, render: render });
+var game = new Phaser.Game(900, 500, Phaser.AUTO, 'phaser-example', { preload: preload, create: eurecaClientSetup, update: update, render: render });
 
 function preload () {
     //game.load.atlas('tank', 'assets/tanks.png', 'assets/tanks.json');
@@ -251,10 +249,10 @@ function create () {
     game.physics.startSystem(Phaser.Physics.ARCADE);
     //  Resize our game world to be a 3000 x 3000 square
     game.world.setBounds(0, 0, 3000, 3000);
-	game.stage.disableVisibilityChange  = true;
+    game.stage.disableVisibilityChange  = true;
 
     //  Our tiled scrolling background
-    land = game.add.tileSprite(0, 0, 960, 640, 'earth');
+    land = game.add.tileSprite(0, 0, 900, 500, 'earth');
     flagzoneTop = game.add.tileSprite(0,0,3000,200,'flagzone');
     flagzoneTop.tint = 0x3090C7;
     flagzoneBottom = game.add.tileSprite(0,2800,3000,200,'flagzone');
@@ -274,9 +272,9 @@ function create () {
 
     tanksList = {};
 
-	player = new Tank(myId, game, tank, myTeam);
-	tanksList[myId] = player;
-	tank = player.tank;
+    player = new Tank(myId, game, tank, myTeam);
+    tanksList[myId] = player;
+    tank = player.tank;
     tank.team = myTeam;
     shadow = player.shadow;
 
@@ -284,19 +282,19 @@ function create () {
 
     if (!game.device.desktop){
         // Virtual Joystick
-        buttonfire = game.add.button(800, 500, 'buttonfire', null, this, 0, 1, 0, 1);
+        buttonfire = game.add.button(750, 370, 'buttonfire', null, this, 0, 1, 0, 1);
         buttonfire.fixedToCamera = true;
         buttonfire.events.onInputOut.add(function(){player.move=false;});
         buttonfire.events.onInputDown.add(function(){player.move=true;});
         buttonfire.events.onInputUp.add(function(){player.move=false;});
 
-        buttonleft = game.add.button(40, 520, 'buttonhorizontal', null, this, 0, 1, 0, 1);
+        buttonleft = game.add.button(40, 400, 'buttonhorizontal', null, this, 0, 1, 0, 1);
         buttonleft.fixedToCamera = true;
         buttonleft.events.onInputOut.add(function(){player.left=false;});
         buttonleft.events.onInputDown.add(function(){player.left=true;});
         buttonleft.events.onInputUp.add(function(){player.left=false;});
 
-        buttonright = game.add.button(180, 520, 'buttonhorizontal', null, this, 0, 1, 0, 1);
+        buttonright = game.add.button(180, 400, 'buttonhorizontal', null, this, 0, 1, 0, 1);
         buttonright.fixedToCamera = true;
         buttonright.events.onInputOut.add(function(){player.right=false;});
         buttonright.events.onInputDown.add(function(){player.right=true;});
@@ -305,7 +303,7 @@ function create () {
 
     var style = {font: "64px Arial", fill: "#ffffff"};
     players = game.add.text(32,32, "Players: " + Object.keys(tanksList).length,
-                            {font: "16px Arial", fill: "#ffffff"});
+    {font: "16px Arial", fill: "#ffffff"});
     players.fixedToCamera = true;
 
     statusText = game.add.text(game.camera.width/2,(game.camera.height/2)-150,"", style);
@@ -323,7 +321,7 @@ function create () {
 
     cursors = game.input.keyboard.createCursorKeys();
 
-	//setTimeout(removeLogo, 1000);
+    //setTimeout(removeLogo, 1000);
 }
 
 function removeLogo () {
@@ -332,16 +330,16 @@ function removeLogo () {
 }
 
 function update () {
-	//do not update if client not ready
-	if (!ready) return;
+    //do not update if client not ready
+    if (!ready) return;
 
     players.setText("Players: " + Object.keys(tanksList).length);
 
-	player.input.left = cursors.left.isDown || player.left;
-	player.input.right = cursors.right.isDown || player.right;
-	player.input.up = cursors.up.isDown || player.move;
-	player.input.tx = game.input.x+ game.camera.x;
-	player.input.ty = game.input.y+ game.camera.y;
+    player.input.left = cursors.left.isDown || player.left;
+    player.input.right = cursors.right.isDown || player.right;
+    player.input.up = cursors.up.isDown || player.move;
+    player.input.tx = game.input.x+ game.camera.x;
+    player.input.ty = game.input.y+ game.camera.y;
 
     land.tilePosition.x = -game.camera.x;
     land.tilePosition.y = -game.camera.y;
@@ -352,13 +350,20 @@ function update () {
     for (var i in tanksList){
         var curTank = tanksList[i];
         if(curTank.alive){
-            game.physics.arcade.collide(player.tank, curTank.tank);
+            game.physics.arcade.collide(player.tank, curTank.tank, collision);
             curTank.update();
         }
     }
 }
 
 function render () {
+}
+
+function collision(playerTank, enemyTank){
+    if(tanksList[playerTank.id].hasFlag && (tanksList[playerTank.id].team != tanksList[enemyTank.id].team)){
+        tanksList[playerTank.id].hasFlag = false;
+        eurecaServer.dropFlag(tanksList[playerTank.id].team);
+    }
 }
 
 function tryFlag(targetTank, targetZone){

@@ -56,6 +56,15 @@ eurecaServer.exports.handshake = function()
 	}
 }
 
+eurecaServer.exports.dropFlag = function(playerTeam)
+{
+	if(playerTeam){
+        redFlag = "empty";
+    }else{
+        blueFlag = "empty";
+    }
+}
+
 eurecaServer.exports.handleKeys = function (keys) {
 	var conn = this.connection;
 	var updatedClient = clients[conn.id];
