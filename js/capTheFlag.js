@@ -69,6 +69,7 @@ var eurecaClientSetup = function() {
             tanksList[id].update();
         }else if (tanksList[id])  {
             tanksList[id].cursor = state;
+            //game.add.tween(tanksList[id].tank).to({x: state.x, y: state.y}, 60, null, true);
             tanksList[id].tank.x = state.x;
             tanksList[id].tank.y = state.y;
             tanksList[id].tank.angle = state.angle;
@@ -108,6 +109,8 @@ Tank = function (index, game, player, team) {
     this.hasGoal = false;
     this.alive = true;
 
+    this.lastUpdate = 0;
+
     this.shadow = game.add.sprite(x, y, 'shadow');
     this.tank = game.add.sprite(x, y, 'enemy');
     this.redCircle = game.add.sprite(x, y, 'rCircle');
@@ -139,7 +142,7 @@ Tank = function (index, game, player, team) {
     this.tank.id = index;
     game.physics.arcade.enable(this.tank);
     this.tank.body.drag.set(300);
-    this.tank.body.maxVelocity.set(400);
+    this.tank.body.maxVelocity.set(300);
     this.tank.body.collideWorldBounds = true;
 
     this.tank.angle = 0;
@@ -147,14 +150,16 @@ Tank = function (index, game, player, team) {
 
 Tank.prototype.update = function() {
 
-    var inputChanged = (
-        this.cursor.left != this.input.left ||
-        this.cursor.right != this.input.right ||
-        this.cursor.up != this.input.up
-    );
+    // var inputChanged = (
+    //     this.cursor.left != this.input.left ||
+    //     this.cursor.right != this.input.right ||
+    //     this.cursor.up != this.input.up
+    // );
 
-    if (inputChanged)
+    //if (inputChanged)
+    if(Date.now() - this.lastUpdate > 50)
     {
+        this.lastUpdate = Date.now();
         //Handle input change here
         //send new values to the server
         if (this.tank.id == myId)
@@ -324,10 +329,10 @@ function create () {
     //setTimeout(removeLogo, 1000);
 }
 
-function removeLogo () {
-    game.input.onDown.remove(removeLogo, this);
-    logo.kill();
-}
+// function removeLogo () {
+//     game.input.onDown.remove(removeLogo, this);
+//     logo.kill();
+// }
 
 function update () {
     //do not update if client not ready

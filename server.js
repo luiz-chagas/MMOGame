@@ -6,9 +6,9 @@ var express = require('express')
 // serve static files from the current directory
 app.use(express.static(__dirname));
 
-var EurecaServer = require('eureca.io').EurecaServer;
+var Eureca = require('eureca.io');
 
-var eurecaServer = new EurecaServer({allow:['setId', 'spawnEnemy', 'kill', 'updateState', 'endGame']});
+var eurecaServer = new Eureca.Server({allow:['setId', 'spawnEnemy', 'kill', 'updateState', 'endGame']});
 var clients = {};
 var nPlayers = 0;
 var blueFlag = "empty";
