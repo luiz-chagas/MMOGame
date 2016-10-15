@@ -76,17 +76,19 @@ eurecaServer.exports.handleKeys = function (keys) {
     var textEvent = "";
     var eventGoal = false;
 
-    if(keys.hasGoal && keys.hasFlag && Date.now() - goalCooldown > 1000){
-        goalCooldown = Date.now();
-        eventGoal = true;
-        if(keys.team == 1){
-            textEvent = "Blue";
-            score.blue++;
-        }else{
-            textEvent = "Red";
-            score.red++;
+    if(keys.hasGoal && keys.hasFlag){
+        if(Date.now() - goalCooldown > 1000){
+            goalCooldown = Date.now();
+            eventGoal = true;
+            if(keys.team == 1){
+                textEvent = "Blue";
+                score.blue++;
+            }else{
+                textEvent = "Red";
+                score.red++;
+            }
+            textEvent += " team scores!";
         }
-        textEvent += " team scores!";
         keys.hasFlag = false;
         keys.hasGoal = false;
         blueFlag = "empty";
