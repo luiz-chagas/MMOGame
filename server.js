@@ -8,11 +8,12 @@ app.use(express.static(__dirname));
 
 var Eureca = require('eureca.io');
 
-var eurecaServer = new Eureca.Server({allow:['setId', 'spawnEnemy', 'kill', 'updateState', 'endGame']});
+var eurecaServer = new Eureca.Server({allow:['setId', 'spawnEnemy', 'kill', 'updateState', 'sendText']});
 var clients = {};
 var nPlayers = 0;
 var blueFlag = "empty";
 var redFlag = "empty";
+var score = {red: 0, blue: 0};
 
 eurecaServer.attach(server);
 
@@ -28,6 +29,10 @@ eurecaServer.onConnect(function (conn){
 eurecaServer.onDisconnect(function (conn){
     console.log("Client disconnected.\n");
     nPlayers--;
+    if(nPlayers == 0){
+        score.red = 0;
+        score.blue = 0;
+    }
     if(blueFlag == conn.id){
         blueFlag = "empty";
     } else if (redFlag == conn.id) {
@@ -75,9 +80,11 @@ eurecaServer.exports.handleKeys = function (keys) {
         eventGoal = true;
         if(keys.team == 1){
             textEvent = "Blue";
+            score.blue++;
 
         }else{
             textEvent = "Red";
+            score.red++;
         }
         textEvent += " team scores!";
         keys.hasFlag = 0;
@@ -85,6 +92,8 @@ eurecaServer.exports.handleKeys = function (keys) {
         blueFlag = "empty";
         redFlag = "empty";
     }
+
+    keys.score = score;
 
     if(keys.hasFlag){
         if(keys.team == 1){
@@ -106,7 +115,7 @@ eurecaServer.exports.handleKeys = function (keys) {
 	{
 		var remote = clients[c].remote;
         if(eventGoal){
-            remote.endGame(textEvent);
+            remote.sendText(textEvent);
         }
 		remote.updateState(updatedClient.id, keys);
 		clients[c].laststate = keys;

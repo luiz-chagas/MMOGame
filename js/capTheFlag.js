@@ -1,4 +1,4 @@
-var myId = 0;
+var myId;
 var myTeam;
 
 var land;
@@ -16,6 +16,7 @@ var tanksList;
 var logo;
 var cursors;
 var players;
+var score;
 var ready = false;
 var move = false;
 var left = false;
@@ -65,6 +66,7 @@ var eurecaClientSetup = function() {
     eurecaClient.exports.updateState = function(id, state)
     {
         if(id == myId){
+            tanksList[id].score = state.score;
             tanksList[id].cursor = state;
             tanksList[id].update();
         }else if (tanksList[id])  {
@@ -77,7 +79,7 @@ var eurecaClientSetup = function() {
         }
     }
 
-    eurecaClient.exports.endGame = function(newText)
+    eurecaClient.exports.sendText = function(newText)
     {
         statusText.setText(newText);
         game.time.events.add(Phaser.Timer.SECOND * 4, resetText, this);
@@ -105,6 +107,8 @@ Tank = function (index, game, player, team) {
     this.player = player;
     this.team = team;
 
+    this.score = {red: 0, blue: 0};
+
     this.hasFlag = false;
     this.hasGoal = false;
     this.alive = true;
@@ -119,7 +123,7 @@ Tank = function (index, game, player, team) {
     this.redCircle.visible = false;
     this.blueCircle.visible = false;
 
-    this.tank.x = game.rnd.integerInRange(0,3000);
+    this.tank.x = game.rnd.integerInRange(0,2000);
 
     if(this.team){
         this.tank.tint = 0x0000ff;
@@ -142,7 +146,7 @@ Tank = function (index, game, player, team) {
     this.tank.id = index;
     game.physics.arcade.enable(this.tank);
     this.tank.body.drag.set(300);
-    this.tank.body.maxVelocity.set(300);
+    this.tank.body.maxVelocity.set(350);
     this.tank.body.collideWorldBounds = true;
 
     this.tank.angle = 0;
@@ -253,14 +257,14 @@ function preload () {
 function create () {
     game.physics.startSystem(Phaser.Physics.ARCADE);
     //  Resize our game world to be a 3000 x 3000 square
-    game.world.setBounds(0, 0, 3000, 3000);
+    game.world.setBounds(0, 0, 2000, 3000);
     game.stage.disableVisibilityChange  = true;
 
     //  Our tiled scrolling background
     land = game.add.tileSprite(0, 0, 900, 500, 'earth');
-    flagzoneTop = game.add.tileSprite(0,0,3000,200,'flagzone');
+    flagzoneTop = game.add.tileSprite(0,0,2000,200,'flagzone');
     flagzoneTop.tint = 0x3090C7;
-    flagzoneBottom = game.add.tileSprite(0,2800,3000,200,'flagzone');
+    flagzoneBottom = game.add.tileSprite(0,2800,2000,200,'flagzone');
     flagzoneBottom.tint = 0xF62217;
 
     game.physics.arcade.enableBody(flagzoneTop);
@@ -269,9 +273,8 @@ function create () {
     var middleLine = game.add.graphics(0,0);
     middleLine.moveTo(0,1495);
     middleLine.lineStyle(10,0xFFFFFF);
-    middleLine.lineTo(3000, 1495);
-    middleLine.drawCircle(1500,1500,600);
-
+    middleLine.lineTo(2000, 1495);
+    middleLine.drawCircle(1000,1500,600);
 
     land.fixedToCamera = true;
 
@@ -306,10 +309,13 @@ function create () {
         buttonright.events.onInputUp.add(function(){player.right=false;});
     }
 
-    var style = {font: "64px Arial", fill: "#ffffff"};
+    var style = {font: "48px Arial", fill: "#ffffff"};
     players = game.add.text(32,32, "Players: " + Object.keys(tanksList).length,
-    {font: "16px Arial", fill: "#ffffff"});
+                                {font: "14px Arial", fill: "#ffffff"});
     players.fixedToCamera = true;
+
+    score = game.add.text(820,32, "", {font: "14px Arial", fill: "#ffffff"});
+    score.fixedToCamera = true;
 
     statusText = game.add.text(game.camera.width/2,(game.camera.height/2)-150,"", style);
     statusText.fixedToCamera = true;
@@ -339,6 +345,7 @@ function update () {
     if (!ready) return;
 
     players.setText("Players: " + Object.keys(tanksList).length);
+    score.setText("Reds: " + tanksList[myId].score.red + "\nBlues: " + tanksList[myId].score.blue);
 
     player.input.left = cursors.left.isDown || player.left;
     player.input.right = cursors.right.isDown || player.right;
