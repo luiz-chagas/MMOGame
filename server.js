@@ -76,7 +76,7 @@ eurecaServer.exports.handleKeys = function (keys) {
     var textEvent = "";
     var eventGoal = false;
 
-    if(keys.hasGoal && keys.hasFlag && Date.now() - goalCooldown > 50){
+    if(keys.hasGoal && keys.hasFlag && Date.now() - goalCooldown > 100){
         goalCooldown = Date.now();
         eventGoal = true;
         if(keys.team == 1){

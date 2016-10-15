@@ -182,6 +182,7 @@ Tank.prototype.update = function() {
 
     //cursor value is now updated by eurecaClient.exports.updateState method
 
+    this.hasGoal = this.cursor.hasGoal;
     this.hasFlag = this.cursor.hasFlag;
 
     if (this.cursor.left)
