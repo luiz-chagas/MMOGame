@@ -177,9 +177,6 @@ Tank.prototype.update = function() {
             this.input.team = this.team;
 
             eurecaServer.handleKeys(this.input);
-
-            //Hack so score doesn't update multiple times in case of high latency
-            if(this.hasGoal) this.hasGoal = false;
         }
     }
 

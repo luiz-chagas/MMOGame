@@ -14,6 +14,7 @@ var nPlayers = 0;
 var blueFlag = "empty";
 var redFlag = "empty";
 var score = {red: 0, blue: 0};
+var goalCooldown = 0;
 
 eurecaServer.attach(server);
 
@@ -75,7 +76,8 @@ eurecaServer.exports.handleKeys = function (keys) {
     var textEvent = "";
     var eventGoal = false;
 
-    if(keys.hasGoal && keys.hasFlag){
+    if(keys.hasGoal && keys.hasFlag && Date.now() - goalCooldown > 50){
+        goalCooldown = Date.now();
         eventGoal = true;
         if(keys.team == 1){
             textEvent = "Blue";
