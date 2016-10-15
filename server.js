@@ -41,8 +41,7 @@ eurecaServer.onDisconnect(function (conn){
 
     delete clients[conn.id];
     for(var c in clients){
-        var remote = clients[c].remote;
-        remote.kill(conn.id);
+        clients[c].remote.kill(conn.id);
     }
 });
 
@@ -76,19 +75,18 @@ eurecaServer.exports.handleKeys = function (keys) {
     var textEvent = "";
     var eventGoal = false;
 
-    if(keys.hasGoal){
+    if(keys.hasGoal && keys.hasFlag){
         eventGoal = true;
         if(keys.team == 1){
             textEvent = "Blue";
             score.blue++;
-
         }else{
             textEvent = "Red";
             score.red++;
         }
         textEvent += " team scores!";
-        keys.hasFlag = 0;
-        keys.hasGoal = 0;
+        keys.hasFlag = false;
+        keys.hasGoal = false;
         blueFlag = "empty";
         redFlag = "empty";
     }

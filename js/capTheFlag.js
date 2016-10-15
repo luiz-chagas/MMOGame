@@ -71,9 +71,9 @@ var eurecaClientSetup = function() {
             tanksList[id].update();
         }else if (tanksList[id])  {
             tanksList[id].cursor = state;
-            //game.add.tween(tanksList[id].tank).to({x: state.x, y: state.y}, 60, null, true);
-            tanksList[id].tank.x = state.x;
-            tanksList[id].tank.y = state.y;
+            game.add.tween(tanksList[id].tank).to({x: state.x, y: state.y}, 50, null, true);
+            //tanksList[id].tank.x = state.x;
+            //tanksList[id].tank.y = state.y;
             tanksList[id].tank.angle = state.angle;
             tanksList[id].update();
         }
@@ -82,7 +82,7 @@ var eurecaClientSetup = function() {
     eurecaClient.exports.sendText = function(newText)
     {
         statusText.setText(newText);
-        game.time.events.add(Phaser.Timer.SECOND * 4, resetText, this);
+        game.time.events.add(Phaser.Timer.SECOND * 3, resetText, this);
     }
 }
 
@@ -91,7 +91,7 @@ Tank = function (index, game, player, team) {
     this.cursor = {
         left:false,
         right:false,
-        up:false,
+        up:false
     }
 
     this.input = {
@@ -177,12 +177,14 @@ Tank.prototype.update = function() {
             this.input.team = this.team;
 
             eurecaServer.handleKeys(this.input);
+
+            //Hack so score doesn't update multiple times in case of high latency
+            if(this.hasGoal) this.hasGoal = false;
         }
     }
 
     //cursor value is now updated by eurecaClient.exports.updateState method
 
-    this.hasGoal = this.cursor.hasGoal;
     this.hasFlag = this.cursor.hasFlag;
 
     if (this.cursor.left)
@@ -221,7 +223,6 @@ Tank.prototype.update = function() {
     this.redCircle.y = this.tank.y;
     this.blueCircle.x = this.tank.x;
     this.blueCircle.y = this.tank.y;
-
 
     this.shadow.rotation = this.tank.rotation;
 };
