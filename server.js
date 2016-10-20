@@ -14,7 +14,7 @@ var nPlayers = 0;
 var blueFlag = "empty";
 var redFlag = "empty";
 var score = {red: 0, blue: 0};
-var goalCooldown = 0;
+var cooldown = {red: 0, blue: 0};
 
 eurecaServer.attach(server);
 
@@ -77,18 +77,18 @@ eurecaServer.exports.handleKeys = function (keys) {
     var eventGoal = false;
 
     if(keys.hasGoal && keys.hasFlag){
-        if(Date.now() - goalCooldown > 1000){
-            goalCooldown = Date.now();
+        if(keys.team == 1 && Date.now() - cooldown.blue > 1000){
+            cooldown.blue = Date.now();
             eventGoal = true;
-            if(keys.team == 1){
-                textEvent = "Blue";
-                score.blue++;
-            }else{
-                textEvent = "Red";
-                score.red++;
-            }
-            textEvent += " team scores!";
+            textEvent = "Blue";
+            score.blue++;
+        }else if(keys.team == 2 && Date.now() - cooldown.red > 1000){
+            cooldown.red = Date.now();
+            eventGoal = true;
+            textEvent = "Red";
+            score.red++;
         }
+        textEvent += " team scores!";
         keys.hasFlag = false;
         keys.hasGoal = false;
         blueFlag = "empty";
