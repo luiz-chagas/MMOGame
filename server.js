@@ -82,7 +82,7 @@ eurecaServer.exports.handleKeys = function (keys) {
             eventGoal = true;
             textEvent = "Blue";
             score.blue++;
-        }else if(keys.team == 2 && Date.now() - cooldown.red > 1000){
+        }else if(keys.team == 0 && Date.now() - cooldown.red > 1000){
             cooldown.red = Date.now();
             eventGoal = true;
             textEvent = "Red";
