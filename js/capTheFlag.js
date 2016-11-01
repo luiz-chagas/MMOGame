@@ -248,6 +248,7 @@ function preload () {
     game.load.spritesheet('buttonfire', 'assets/button-round.png',96,96);
     game.load.spritesheet('buttonhorizontal', 'assets/button-horizontal.png',96,64);
     game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+    game.scale.setMinMax(320, 178, 900, 500);
     game.scale.pageAlignHorizontally = true;
     game.scale.pageAlignVertically = true;
 }
