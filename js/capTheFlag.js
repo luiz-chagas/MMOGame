@@ -251,6 +251,7 @@ function preload () {
     game.scale.setMinMax(320, 178, 900, 500);
     game.scale.pageAlignHorizontally = true;
     game.scale.pageAlignVertically = true;
+    game.stage.smoothed = false;
 }
 
 function create () {
